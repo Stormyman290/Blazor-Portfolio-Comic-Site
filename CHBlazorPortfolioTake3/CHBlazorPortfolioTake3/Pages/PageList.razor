@@ -1,0 +1,127 @@
+﻿@inject HttpClient Http
+
+@if (ComicPages == null || ComicPages.Count == 0)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <Layout>
+        <LayoutHeader Fixed=false Background="Background.Success">
+            <h3>christopherhahn.net (Coming Soon) - @QuestForJonutsComic.ComicTitle</h3>
+        </LayoutHeader>
+        <Layout Sider>
+            <LayoutSider>
+                <LayoutSiderContent Overflow="Overflow.Auto">
+                    <!-- Scrollabale list of page buttons to get through for the comic -->
+                    <UnorderedList>
+                        @for (int p = 0; p < ComicPages.Count; p++)
+                        {
+                            int pageNum = p;
+                            <UnorderedListItem>
+                                <Row Margin="Margin.Is2">
+                                    <Button Background="IsPageSelected(pageNum)" @onclick="() => JumpToPage(pageNum)">
+                                        <Container Padding="Padding.Is0">
+                                            <Div>
+                                                @*<Image Padding="Padding.Is2" Source=@ComicPages[pageNum].ImageURLs[ComicPages[pageNum].ThumbnailIndex] Text="Image Test Text" Fluid></Image>*@
+                                                @*<Image Padding="Padding.Is2" Source="favicon.png" Text="Image Test Text" Loading></Image>*@
+                                                <Text TextColor="TextColor.White">p@(pageNum + 1) - </Text>
+                                                <Figure Padding="Padding.Is2" Size="FigureSize.Is128x128" Position="Position.Relative.Start">
+                                                    <FigureImage Source=@ComicPages[pageNum].ImageURLs[ComicPages[pageNum].ThumbnailIndex] AlternateText="Image Test Text" Rounded/>
+                                                </Figure>
+                                                <Text TextColor="TextColor.White"> - @ComicPages[pageNum].Title</Text>
+                                            </Div>
+                                        </Container>
+                                    </Button>
+                                </Row>
+                            </UnorderedListItem>
+                        }
+                    </UnorderedList>
+                </LayoutSiderContent>
+            </LayoutSider>
+            <Layout>
+                <LayoutContent Overflow="Overflow.Auto">
+
+                    <!--Content-->
+                    <Container Width="Width.Is50">  @*Background="Background.Warning">*@
+                        @*The comic title*@
+                        <Heading Size="HeadingSize.Is3">@ComicPages[focusPageNum].Title</Heading>
+
+                        @*The comic images*@
+                        <Container> @*Background="Background.Danger">*@
+                            <CardImage Source=@ComicPages[focusPageNum].ImageURLs[0] Text="Image Test Text"></CardImage>
+                        </Container>
+
+                        @*The comic paragraph comment*@
+                        <Paragraph>@ComicPages[focusPageNum].Comment</Paragraph>
+                    </Container>
+
+                </LayoutContent>
+
+                <LayoutFooter Background="Background.Warning">
+                    @*The back and forward buttons*@
+                    <Container>
+                        <Button Background="Background.Secondary" Padding="Padding.Is2" Disabled=@(focusPageNum == 0) @onclick="() => JumpToPage(focusPageNum-1)">Previous</Button>
+                        <Button Background="Background.Secondary" Padding="Padding.Is2" Disabled=@(focusPageNum == ComicPages.Count - 1) @onclick="() => JumpToPage(focusPageNum+1)">Next</Button>
+                    </Container>
+                </LayoutFooter>
+
+            </Layout>
+        </Layout>
+    </Layout>
+}
+
+
+@code {
+    public ComicData? QuestForJonutsComic;
+    public List<ComicPage>? ComicPages;
+    public int focusPageNum = 0;
+
+    //Stream? fileStream;
+
+    public PageList()
+    {
+        //QuestForJonutsComic = null;
+        //ComicPages = null;
+
+        //ComicPages = new List<ComicPage>
+        //{
+        //    new ComicPage(),
+        //    new ComicPage("Quest For Jonuts", new string[]{"ComicPages/Q4J Title Pages-2.png"}, "Comment Paragraph"),
+        //    new ComicPage(),
+        //    new ComicPage(),
+        //    new ComicPage(),
+        //    new ComicPage("QQ", new string[]{"favicon.png"}, "QQ")
+        //};
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        //forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json");
+        //fileStream = await Http.GetStreamAsync("ComicDatas/The Quest For Jonuts");
+        //QuestForJonutsComic = new ComicData(fileStream);
+        QuestForJonutsComic = await Http.GetFromJsonAsync<ComicData>("ComicDatas/The Quest For Jonuts.json");
+        if (QuestForJonutsComic != null)
+        {
+            QuestForJonutsComic.FixImageURLs();
+            ComicPages = QuestForJonutsComic.ComicPages;
+        }
+    }
+
+    private void JumpToPage(int pageToGoTo)
+    {
+        if (pageToGoTo < 0 || pageToGoTo >= ComicPages.Count())
+            return;
+
+
+        focusPageNum = pageToGoTo;
+    }
+
+    private Background IsPageSelected(int pageNum)
+    {
+        if (focusPageNum == pageNum)
+            return Background.Primary;
+        else
+            return Background.Secondary;
+    }
+}
